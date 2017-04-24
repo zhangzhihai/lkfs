@@ -1,14 +1,15 @@
 package lkfs
 
 import (
-	"fmt"
-	"testing"
+//"fmt"
+//"testing"
 )
 
 var fi *filesystem
 var block, start, size int32
 var body []byte
 
+/**
 func init() {
 	block = 0
 	start = 0
@@ -53,3 +54,4 @@ func TestFWrite(t *testing.T) {
 	}
 
 }
+**/
