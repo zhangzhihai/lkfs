@@ -1,15 +1,14 @@
 package lkfs
 
 import (
-//"fmt"
-//"testing"
+	"fmt"
+	"testing"
 )
 
 var fi *filesystem
 var block, start, size int32
 var body []byte
 
-/**
 func init() {
 	block = 0
 	start = 0
@@ -19,15 +18,17 @@ func init() {
 
 func TestNewfs(t *testing.T) {
 	var err error
-	path := "E:/net/golang/src/ulucu.github.com/lkfs"
-	fi, err = Newfs(path)
+	path := "d:/webserver/net/golang/src/ulucu.github.com/lkfs"
+
+	fi, err = Newfs(path, 0)
 	if err != nil {
 		t.Log(err)
 	}
 
-	//fmt.Println(pt)
+	fmt.Println(fi)
 }
 
+/**
 func TestRead(t *testing.T) {
 	for i := int32(0); i < 10; i++ {
 		start = i * size
@@ -44,7 +45,7 @@ func TestFWrite(t *testing.T) {
 
 	for i := int32(0); i < 10; i++ {
 		start = i * size
-		bl, err := fi.Write(block, start, size, body)
+		bl, err := fi.Write(start, size, body)
 
 		fmt.Println("len", len(body))
 		if err != nil {

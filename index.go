@@ -53,20 +53,27 @@ func NewFildIdx(path string) (idx *FileIdx, err error) {
 		return nil, err
 	}
 
-	fi, err := os.OpenFile(pt, os.O_RDWR, 0)
+	fi, err := os.OpenFile(pt, os.O_RDWR, 0664)
 	if err != nil {
 		return nil, err
 	}
 
-	ri, err := os.OpenFile(pt, os.O_RDONLY, 0)
+	//ri, err := os.Open(pt, os.O_RDONLY, 0664)
+	//log.Debugf("pt %s", pt)
+
+	//dat, err := ioutil.ReadFile(pt)
+	//fmt.Println(dat)
+
+	ri, err := os.Open(pt)
 	if err != nil {
 		return nil, err
 	}
 
 	buf := make([]byte, 128)
-	r := bufio.NewReader(fi)
+	//r := bufio.NewReader(fi)
 
-	n, err := r.Read(buf)
+	n, err := ri.Read(buf)
+
 	if err != nil {
 		return nil, err
 	}
@@ -78,8 +85,10 @@ func NewFildIdx(path string) (idx *FileIdx, err error) {
 	var MaxId int32
 	var BlockId int32
 
-	binary.Read(bytes.NewBuffer(buf[0:3]), binary.BigEndian, &MaxId)
-	binary.Read(bytes.NewBuffer(buf[4:7]), binary.BigEndian, &BlockId)
+	binary.Read(bytes.NewBuffer(buf[0:4]), binary.BigEndian, &MaxId)
+	binary.Read(bytes.NewBuffer(buf[5:8]), binary.BigEndian, &BlockId)
+
+	log.Debugf("maxid %d blockid %d", MaxId, BlockId)
 
 	idx = &FileIdx{
 		MaxId:   MaxId,
@@ -94,6 +103,8 @@ func NewFildIdx(path string) (idx *FileIdx, err error) {
 
 //path
 func Init(path string) (pt string, err error) {
+
+	log.Debugf("index path ", path)
 	b, err := PathExists(path)
 	if err != nil {
 		log.Fatalf("index init is path err", err)
@@ -107,6 +118,7 @@ func Init(path string) (pt string, err error) {
 			log.Fatalf("make path fail is path err", err)
 			return "", err
 		}
+
 		if m == false {
 			return "", errors.New("make dir err")
 		}
@@ -116,6 +128,10 @@ func Init(path string) (pt string, err error) {
 
 	//建立索引文件
 	name := fmt.Sprintf("%s/%s", path, Binext)
+	exisfile, err := PathExists(name)
+	if exisfile == true {
+		return name, nil
+	}
 
 	//如何把int 转成byte 存到文件中
 	buf := make([]byte, 4)
@@ -127,6 +143,7 @@ func Init(path string) (pt string, err error) {
 	newbuf.Write(buf)
 	//log.Println("init write len 128")
 	err = ioutil.WriteFile(name, newbuf.Bytes(), 0666)
+
 	return name, err
 }
 
@@ -173,8 +190,33 @@ func (fi *FileIdx) Push(i int) error {
 //生成索引id
 func (fi *FileIdx) Uuid() (id int32, err error) {
 	//fmt.Println("Maxid:", fi.MaxId)
-	fi.MaxId = fi.MaxId + 1
 
+	//写入文件
+	buuid := make([]byte, 4)
+
+	binary.BigEndian.PutUint32(buuid, uint32(fi.MaxId+1))
+	log.Debugf("uuid %d", fi.MaxId+1)
+
+	fi.Mutex.Lock()
+	fi.w.Seek(0, 0)
+
+	bf := bytes.NewBuffer(make([]byte, 0))
+	bf.Write(buuid)
+
+	log.Debugf("bf bytes %v", bf.Bytes())
+
+	n, err := fi.w.Write(bf.Bytes())
+
+	log.Debugf("buuid %v", buuid)
+	log.Debugf("n %d", n)
+
+	fi.Mutex.Unlock()
+
+	if err != nil {
+		return 0, err
+	}
+
+	fi.MaxId = fi.MaxId + 1
 	return fi.MaxId, nil
 }
 

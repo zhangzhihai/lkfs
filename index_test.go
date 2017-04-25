@@ -12,7 +12,7 @@ var bi *FileIdx
 
 func TestInit(t *testing.T) {
 
-	path := "E:/net/golang/src/ulucu.github.com/lkfs"
+	path := "d:/webserver/net/golang/src/ulucu.github.com/lkfs"
 	pt, err := Init(path)
 	if err != nil {
 		t.Log(err)
@@ -22,7 +22,7 @@ func TestInit(t *testing.T) {
 }
 
 func TestNewIndex(t *testing.T) {
-	path := "E:/net/golang/src/ulucu.github.com/lkfs"
+	path := "d:/webserver/net/golang/src/ulucu.github.com/lkfs"
 	pt, err := NewFildIdx(path)
 	if err != nil {
 		t.Error(err)
