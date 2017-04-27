@@ -107,24 +107,25 @@ func (f *filesystem) Write(szie int32, body []byte) (start int32, bid int32, err
 	}
 	var n int64 = 0
 
+	f.mutex.Lock()
+
 	if finfo.Size() > BlockSize {
 
 		f.w.Close()
-
-		f.mutex.Lock()
 
 		f.idx += 1
 		fileName = fmt.Sprintf("%s/%d.%s", f.path, f.idx, Dxt)
 
 		f.w, err = os.OpenFile(fileName, os.O_WRONLY|os.O_CREATE, 0664)
 		if err != nil {
+
 			return end, f.idx, err
 		}
+
 		//f.w.Seek(int64(0), 0)
 
 	} else {
 
-		f.mutex.Lock()
 		// 查找文件末尾的偏移量
 		n, err = f.w.Seek(0, os.SEEK_END)
 		if err != nil {
@@ -134,7 +135,7 @@ func (f *filesystem) Write(szie int32, body []byte) (start int32, bid int32, err
 	}
 
 	_, err = f.w.WriteAt(body, n)
-	f.mutex.Unlock()
+	defer f.mutex.Unlock()
 
 	if err != nil {
 		return end, f.idx, err
